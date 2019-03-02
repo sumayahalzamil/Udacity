@@ -1,0 +1,368 @@
+Sumayah Alzamil
+
+========================================================
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Load all of the packages that you end up using in your analysis in this code
+# chunk.
+
+# Notice that the parameter "echo" was set to FALSE for this code chunk. This
+# prevents the code from displaying in the knitted HTML output. You should set
+# echo=FALSE for all code chunks in your file, unless it makes sense for your
+# report to show the code that generated a particular plot.
+
+# The other parameters for "message" and "warning" should also be set to FALSE
+# for other code chunks once you have verified that each plot comes out as you
+# want it to. This will clean up the flow of your report.
+
+library(ggplot2)
+library(knitr)
+library(dplyr)
+library(gridExtra)
+library(GGally)
+library(scales)
+library(RColorBrewer)
+library(memisc)
+
+```
+
+```{r echo=FALSE, Load_the_Data}
+
+# Set working Directory
+setwd("/Users/sumayah/Desktop/Sumayah/Udacity/Data/R")
+
+# Load the Data
+data <- read.csv("wineQualityReds.csv")
+
+names(data)
+
+data$total.acidity <- data$fixed.acidity + data$volatile.acidity
+
+## Set up Plot Themes
+theme_set(theme_minimal(10))
+
+
+```
+
+### Dataset Description - Red Wine
+
+This investigaion is about red wine. It will analyze red wine properties. 
+
+**Data Summary**
+
+```{r echo=FALSE, wine_data_summary}
+summary(data)
+```
+
+**Data Structure** 
+
+```{r echo=FALSE, wine_data_variable_types}
+str(data)
+```
+
+# Univariate Plots Section
+
+# X is not necessary so we will remove it
+```{r, echo= FALSE, message=FALSE, warning=FALSE}
+data <- subset(data, select=-X)
+```
+
+```{r echo=FALSE, histogram_of_wine_quality}
+ggplot(data = data, mapping = aes(x=quality)) + 
+  geom_histogram(binwidth=1)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(aes(x = quality), data = data) + geom_bar() + 
+  scale_x_continuous(breaks = seq(2, 10, 1))
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+plot.hist <- function(xvariable, dataframe, bins) 
+  {
+  ggplot(dataframe, aes_string(x = xvariable)) + geom_histogram(bins = bins)
+}
+```
+
+## Fixed Acidity
+
+Let's look at the summary of fixed acidity.
+```{r, echo=FALSE, messages=FALSE, warnings=FALSE }
+summary(data$fixed.acidity)
+```
+
+
+```{r, echo=FALSE, messages=FALSE, warnings=FALSE }
+fah = plot.hist('fixed.acidity', data, 100)  
+fah1 = plot.hist('fixed.acidity', data, 100) + 
+  scale_x_continuous(limits = c(4, 12), breaks = seq(4, 12, 1))
+grid.arrange(fah, fah1)
+```
+
+
+## Volatile Acidity
+Let's look at the summary of volatile acidity
+```{r, echo=FALSE, messages=FALSE, warnings=FALSE }
+summary(data$volatile.acidity)
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+plot.hist('volatile.acidity', data, 100) +
+  scale_x_continuous(limits = c(0, 0.75), breaks=seq(0, 0.75, 0.1))
+```
+
+## Citric Acid
+Let's look at the summary of citric acid
+```{r, echo=FALSE, messages=FALSE, warnings=FALSE }
+summary(data$citric.acid)
+```
+
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+plot.hist('citric.acid', data, 100) +
+  scale_x_continuous(limits = c(0, 1.0), breaks = seq(0, 1.0, .1))
+
+```
+
+## Residual Sugar
+Let's look at the summary of residual sugar
+```{r, echo=FALSE, messages=FALSE, warnings=FALSE }
+summary(data$residual.sugar)
+```
+
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+rs = plot.hist('residual.sugar', data, 75) 
+logrs = plot.hist('residual.sugar', data, 75)  + 
+  scale_x_continuous(trans = log10_trans(), breaks=c(0, 1.5, 3, 10, 20, 60))
+grid.arrange(rs, logrs)
+rsiqr<-8.2 - 1.7 #using 1st & 3rd quartile from summary to find IQR; we'll use this later for outliers
+```
+
+
+## Chlorides
+
+
+
+```{r, echo= FALSE, message=FALSE, warning=FALSE}
+c = plot.hist('chlorides', data, 75)
+c1 = plot.hist('chlorides', data, 75) + scale_x_continuous(limits = c(0, 0.2))
+summary(data$chlorides)
+grid.arrange(c, c1)
+```
+
+```{r, echo= FALSE, message=FALSE, warning=FALSE}
+cbp = ggplot(data, aes(y = chlorides, x = 1)) + geom_boxplot(color = 'blue') +
+  geom_jitter(aes(x = 1, y = chlorides), alpha = 0.1) + 
+  geom_boxplot(color = 'blue', alpha = 1/2) + coord_flip()
+
+grid.arrange(c, cbp)
+```
+
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+Observations of Summary Data:
+
+* The dataset has 1599 observations. 
+* Each observation represents a red wine and that red wine has 11 attributes
+  1.fixed acidity, 
+  2.volatile acidity, 
+  3.citric acid, 
+  4.residual sugar, 
+  5.chlorides, 
+  6.free sulfur dioxide, 
+  7.total sulfur dioxide, 
+  8.density, 
+  9.pH, 
+  10.sulphates, 
+  11.alcohol,
+* Red wine has 1 output variable 
+  1.red wine quality
+  
+  
+
+### What is/are the main feature(s) of interest in your dataset?
+
+### What other features in the dataset do you think will help support your \
+investigation into your feature(s) of interest?
+
+The main interesting feature  is the wine `quality`. It is the
+subjective measurement of how attractive the wine might be to a consumer. The goal here will be to try and correlate non-subjective wine properties with its quality.
+
+
+### Did you create any new variables from existing variables in the dataset?
+
+### Of the features you investigated, were there any unusual distributions? \
+Did you perform any operations on the data to tidy, adjust, or change the form \
+of the data? If so, why did you do this?
+
+Many measurements that were clustered close to zero had a positive skew. 
+Others such as `pH` and `total.acidity` and `quality` had normal lookingdistributions.
+
+# Bivariate Plots Section
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_Plots}
+
+
+## Autocorrelation plots
+# ggpairs(data)
+        # lower = list(continuous = wrap("points", shape = I('.'))), 
+        # upper = list(combo = wrap("box", outlier.shape = I('.'))))
+set.seed(666)
+ggpairs(data[sample.int(nrow(data),1000),]) + theme(
+  axis.ticks = element_blank(),
+        axis.text = element_blank())
+```
+
+
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest c with other features in \
+the dataset?
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+* There is a relationship between sulphates and wine qualtity, particularly if you disregard extreme sulphate values
+* Disregarding measurements where sulphates > 1.0 is the same as disregarding the positive tail of the distribution, keeping just the normal-looking portion
+* The relationship is  a week one
+
+### What was the strongest relationship you found?
+The strongest relationship between wine properties and wine quality was that of alcohol, chlorides and citric acid. 
+
+# Multivariate Plots Section
+
+```{r,message=FALSE, warning=FALSE, echo=FALSE, Multivariate_Plots}
+q1 <- ggplot(aes(x=alcohol, y=chlorides, color=quality), data=subset(data,
+          data$chlorides < quantile(data$chlorides, 0.99))) + 
+  geom_point(position='jitter') +
+  ggtitle("Alcohol Content vs Chlorides and Wine Quality Ratings")
+
+q2 <- ggplot(aes(x=citric.acid, y=pH, color=quality),data=subset(data,
+          data$citric.acid < quantile(data$citric.acid, 0.99))) +
+  geom_point(position='jitter') +
+  geom_smooth() +
+  ggtitle("Citric Acid vs pH and Wine Quality Ratings")
+
+grid.arrange(q1,q2)
+```
+
+```{r echo=FALSE,message=FALSE, warning=FALSE, Multivariate_Plots2}
+q1 <- ggplot(aes(x=density, y=total.acidity, color=quality), data=data) + 
+  geom_point(position='jitter') +
+  geom_smooth() +
+  ggtitle("Density vs Acidity colored by Wine Quality Ratings")
+
+q2 <- ggplot(aes(x=residual.sugar, y=chlorides, color=quality), data=subset(data,
+          data$chlorides < quantile(data$chlorides, 0.95))) + 
+  geom_point(position='jitter') +
+  geom_smooth() +
+  ggtitle("Sugar vs Chlorides colored by Wine Quality Ratings")
+
+grid.arrange(q1, q2)
+```
+
+# Multivariate Analysis
+
+•	The strongest relationship between wine properties and wine quality was that of alcohol, chlorides and citric acid
+•	pH is considered important when assessing wine quality, however the data does not show an appreciable correlation. In fact, any correlations are week ones. 
+•	The model built with alcohol, chlorides, citric acid, residual sugar and total acidity featured a low R-squared value of just 0.3. Compared with a model where we just start with a guess of the median wine quality (R-squared of 0.5), the model performs rathe poorly. 
+•	Often, the tails of property distributions showed a varied relationship with quality. 
+
+
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+### Were there any interesting or surprising interactions between features?
+
+### OPTIONAL: Did you create any models with your dataset? Discuss the \
+strengths and limitations of your model.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_One}
+ggplot(aes(x=alcohol), data=data) + 
+  geom_density(fill=I("#BB2100")) + 
+  facet_wrap("quality") + 
+  ggtitle("Alcohol Content for Wine Quality Ratings")
+```
+### Description One
+This plot shows the complete picture of the analysis of win quality with two important notes:
+1.	Alcohol content has some effect on wine quality rating
+2.	The effect is not a strong one
+
+
+you can almost see in this visualization the distribution shuffle from left to right as wine
+ratings increase. 
+
+
+
+### Plot Two
+```{r echo=FALSE, warning=FALSE, message=FALSE, Plot_Two}
+ggplot(aes(x = chlorides, y = alcohol),
+       data = subset(data, data$quality != 6)) + 
+  geom_point(aes(color = factor(quality))) +
+  labs(x = expression(Chlorides~(g/dm^3)),
+       y = "Alcohol (percentage of volume)") + 
+  scale_color_brewer(type = 'seq',
+                     guide = guide_legend(title = 'Wine Quality', 
+                                          reverse = T,
+                                          override.aes = list(alpha = 1,
+                                                              size = 2))) +
+  ggtitle("Alcohol by Chlorides for Differing Quality White Wines") + 
+  theme(plot.title = element_text(hjust = 0.25, size = 19, face = 'bold'),
+        panel.border = element_rect(colour = "black", fill = NA)) 
+```
+
+### Description Two
+This plot illustrates that there was little to no correlation between wine quality and percentage of volume.  Additionally, in each case, there are outlier ratings that undermine
+the general relationship.
+
+
+### Plot Three
+```{r echo=FALSE,message=FALSE, warning=FALSE, Plot_Three}
+ggplot(aes(x=citric.acid, y=quality), 
+       data=subset(data, data$citric.acid < 
+                     quantile(data$citric.acid, 0.99))) + 
+  geom_jitter(alpha=2/3) +
+  geom_smooth() + ggtitle("SO2")
+
+```
+
+
+### Description Three
+citric acid seems to have the most promeneant effect on wine quality. There is a specific bump at around 0.25 where the wine quality jumps up in the rating. That bump was also present in the univariate distribution plot for citric acid 
+
+When plotted against wine quality in a scatter plot like this, only citric acid
+and alcohol displayed a noticeable trend. In each case, the distribution is
+slightly skewed towards higher citric acid and higher quality.
+
+------
+
+# Reflection
+I don’t have any knowledge about wine before this project, so I didn’t have any expectation or assumption.  Initially, nothing was immediately correlate to be an inherent quality of good wines. However, upon reflection, this is a practical finding. 
+
+I found out after this project that alcohol content and citric acid were the most properties to wine quality.
+
+I was not able to find a strong set of two properties that would consistently be able to predict wine quality with any degree of certainty.
+
+Additionally, having the wine type would be helpful for further analysis. 
+
+
+
+
+
+
